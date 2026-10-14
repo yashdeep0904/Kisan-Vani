@@ -13,7 +13,8 @@ export default function WeatherForecast() {
     const fetchWeather = async (lat, lon, districtName) => {
       try {
         const response = await api.getWeather(lat, lon);
-        setForecast(response.data || []);
+        // Fallback added to guarantee arrays and prevent map() undefined errors
+        setForecast(response?.data || response || []);
         if (districtName) setLocationName(districtName);
       } catch (err) {
         setError(err.message || 'Failed to load forecast');

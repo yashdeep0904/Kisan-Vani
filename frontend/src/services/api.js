@@ -1,66 +1,109 @@
-const handleResponse = async (response) => {
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error || 'API Request Failed');
+// src/services/api.js
+
+// Live Render backend fallback URL (without trailing slash)
+const LIVE_BACKEND_URL = 'https://kisan-vani-server.onrender.com';
+
+export const API_BASE_URL = import.meta.env.VITE_API_URL || LIVE_BACKEND_URL;
+
+/**
+ * Universal safe response handler that prevents "Unexpected end of JSON input" 
+ * and "Unexpected token '<'" crashes.
+ */
+const handleResponse = async (response, fullUrl) => {
+  const rawText = await response.text();
+  let data = {};
+
+  try {
+    data = rawText ? JSON.parse(rawText) : {};
+  } catch (err) {
+    console.error(`[API Parse Error] Non-JSON response received from ${fullUrl}:`, rawText);
+    throw new Error(`Server connection error (${response.status}). Please verify the backend service is running.`);
   }
+
+  if (!response.ok) {
+    throw new Error(data.error || `API Request Failed with status ${response.status}`);
+  }
+
   return data;
 };
 
+/**
+ * Core HTTP Request Wrapper
+ */
+const customFetch = async (endpoint, options = {}) => {
+  const token = localStorage.getItem('kisan_token');
+  const headers = { ...options.headers };
+
+  // Attach JWT Bearer token if present
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  // Set application/json only if body is NOT FormData
+  if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  const formattedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const fullUrl = `${API_BASE_URL}${formattedEndpoint}`;
+
+  const res = await fetch(fullUrl, {
+    ...options,
+    headers,
+  });
+
+  return handleResponse(res, fullUrl);
+};
+
 export const api = {
+  // Authentication Routes
   register: async (userData) => {
-    const res = await fetch('/api/auth/register', {
+    return customFetch('/api/auth/register', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData),
     });
-    return handleResponse(res);
   },
-  
+
   login: async (credentials) => {
-    const res = await fetch('/api/auth/login', {
+    return customFetch('/api/auth/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(credentials),
     });
-    return handleResponse(res);
   },
 
   logout: async () => {
-    const res = await fetch('/api/auth/logout', { method: 'POST' });
-    return handleResponse(res);
+    return customFetch('/api/auth/logout', { 
+      method: 'POST' 
+    });
   },
 
-  // Real-time Mandi Prices from data.gov.in
-  getMandiPrices: async (search = '') => {
-    const res = await fetch(`/api/mandi?search=${encodeURIComponent(search)}`);
-    return handleResponse(res);
+  // Real-time Mandi Prices Intelligence
+  getMandiPrices: async (district = 'Rohtak', crop = 'Wheat') => {
+    const query = `district=${encodeURIComponent(district)}&crop=${encodeURIComponent(crop)}`;
+    return customFetch(`/api/mandi?${query}`);
   },
 
-  // Real-time Weather from OpenWeatherMap
-  getWeather: async (lat, lon) => {
-    const res = await fetch(`/api/weather?lat=${lat}&lon=${lon}`);
-    return handleResponse(res);
+  // Real-time Weather Data
+  getWeather: async (lat = '28.6139', lon = '77.2090') => {
+    return customFetch(`/api/weather?lat=${lat}&lon=${lon}`);
   },
 
-  // AI Scheme Intelligence (RAG)
+  // Government Schemes Intelligence (RAG)
   querySchemes: async (query) => {
-    const res = await fetch('/api/schemes', {
+    return customFetch('/api/schemes', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query }),
     });
-    return handleResponse(res);
   },
 
-  // Multimodal Crop Diagnostics via Gemini 2.0 Flash
+  // Multimodal Crop Diagnostics via Gemini
   diagnoseCrop: async (imageFile) => {
     const formData = new FormData();
     formData.append('image', imageFile);
 
-    const res = await fetch('/api/diagnose', {
+    return customFetch('/api/diagnose', {
       method: 'POST',
-      body: formData,
+      body: formData, // Browser automatically sets multipart/form-data boundary
     });
-    return handleResponse(res);
   }
 };

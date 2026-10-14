@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { api } from '../services/api';
+import { API_BASE_URL } from '../services/api';
 import { 
   Building2, Search, Sparkles, ExternalLink, ShieldCheck, 
   CheckCircle2, FileText, Loader2, Filter, Info, ChevronRight, Sprout 
@@ -25,8 +25,10 @@ export default function Schemes() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/schemes?search=${encodeURIComponent(search)}&category=${encodeURIComponent(category)}`);
-      const data = await res.json();
+      const res = await fetch(`${API_BASE_URL}/api/schemes?search=${encodeURIComponent(search)}&category=${encodeURIComponent(category)}`);
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : {};
+      
       if (!res.ok) throw new Error(data.error);
       setSchemes(data.data || []);
     } catch (err) {
@@ -50,12 +52,19 @@ export default function Schemes() {
     setAdvisorLoading(true);
     setAiAdvice('');
     try {
-      const res = await fetch('/api/schemes/advisor', {
+      const res = await fetch(`${API_BASE_URL}/api/schemes/advisor`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('kisan_token')}`
+        },
         body: JSON.stringify(advisorState)
       });
-      const data = await res.json();
+      
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : {};
+      
+      if (!res.ok) throw new Error(data.error || 'Failed to fetch AI advice');
       setAiAdvice(data.advice || 'Advisor recommendations ready.');
     } catch (err) {
       setAiAdvice('Unable to generate AI recommendations right now. Please explore the verified scheme list below.');

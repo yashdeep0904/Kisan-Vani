@@ -1,64 +1,64 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
+import { api } from '../services/api';
 
 const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token') || '');
-  
-  // Global state for the Authentication Modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('kisan_user');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser && token) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (e) {
-        localStorage.removeItem('user');
-      }
+  const login = async (credentials) => {
+    setLoading(true);
+    try {
+      const data = await api.login(credentials);
+      const userData = data.user || data;
+      
+      setUser(userData);
+      localStorage.setItem('kisan_user', JSON.stringify(userData));
+      if (data.token) localStorage.setItem('kisan_token', data.token);
+      
+      return data;
+    } finally {
+      setLoading(false);
     }
-  }, [token]);
-
-  const loginUser = (userData, userToken) => {
-    setUser(userData);
-    setToken(userToken);
-    localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('token', userToken);
-    setIsModalOpen(false); // Auto-close modal on successful login
   };
 
-  const logoutUser = async () => {
+  const register = async (userData) => {
+    setLoading(true);
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      const data = await api.register(userData);
+      const userObj = data.user || data;
+      
+      setUser(userObj);
+      localStorage.setItem('kisan_user', JSON.stringify(userObj));
+      if (data.token) localStorage.setItem('kisan_token', data.token);
+      
+      return data;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await api.logout();
     } catch (err) {
-      console.warn('Logout error:', err);
+      console.warn('Logout notification error:', err.message);
     } finally {
       setUser(null);
-      setToken('');
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
+      localStorage.removeItem('kisan_user');
+      localStorage.removeItem('kisan_token');
     }
   };
 
-  // Modal Control Functions
-  const openAuthModal = () => setIsModalOpen(true);
-  const closeAuthModal = () => setIsModalOpen(false);
-
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      token, 
-      loginUser, 
-      logoutUser, 
-      isAuthenticated: !!token,
-      isModalOpen,
-      openAuthModal,
-      closeAuthModal
-    }}>
+    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
 export const useAuth = () => useContext(AuthContext);

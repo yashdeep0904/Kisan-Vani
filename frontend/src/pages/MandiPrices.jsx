@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, Search, Loader2, MapPin, BrainCircuit, Calendar, Layers } from 'lucide-react';
 import Card from '../components/ui/Card';
+import { api } from '../services/api';
 
 export default function MandiPrices() {
   const [district, setDistrict] = useState('Rohtak');
@@ -14,10 +15,7 @@ export default function MandiPrices() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/mandi?district=${encodeURIComponent(district)}&crop=${encodeURIComponent(crop)}`);
-      const data = await res.json();
-      
-      if (!res.ok) throw new Error(data.error || 'Failed to load intelligence');
+      const data = await api.getMandiPrices(district, crop);
       setIntelligence(data);
     } catch (err) {
       setError(err.message || 'Failed to fetch market intelligence');
@@ -82,7 +80,6 @@ export default function MandiPrices() {
 
       {intelligence && !loading && (
         <div className="space-y-6">
-          {/* AI Sentiment Analysis Card */}
           <Card className="border-emerald-900/30 bg-emerald-950/10 relative overflow-hidden p-6">
             <div className="absolute top-0 right-0 p-4 opacity-10">
               <BrainCircuit className="h-24 w-24 text-emerald-500" />
@@ -95,15 +92,13 @@ export default function MandiPrices() {
             </p>
           </Card>
 
-          {/* Section Header */}
           <div className="flex items-center gap-2 text-white font-bold text-lg border-b border-slate-800 pb-2">
             <Layers className="h-5 w-5 text-amber-400" />
-            <span>Available Varieties in {intelligence.district} ({intelligence?.varieties?.length})</span>
+            <span>Available Varieties in {intelligence.district} ({intelligence?.varieties?.length || 0})</span>
           </div>
 
-          {/* Varieties Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {intelligence.varieties.map((v, idx) => (
+            {(intelligence?.varieties || []).map((v, idx) => (
               <Card key={idx} className="border-amber-900/30 bg-amber-950/10 flex flex-col justify-between">
                 <div>
                   <div className="flex justify-between items-start mb-3">

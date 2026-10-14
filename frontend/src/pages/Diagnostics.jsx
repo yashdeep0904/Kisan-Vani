@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { api } from '../services/api';
 import { 
   Stethoscope, Camera, Upload, RefreshCw, AlertTriangle, 
   CheckCircle2, ShieldAlert, Sparkles, Loader2, X, Leaf, Bug, Sprout 
@@ -94,7 +95,7 @@ export default function CropDoctor() {
     setError(null);
   };
 
-  // 6. Submit Image for AI Diagnosis
+  // 6. Submit Image for AI Diagnosis (Updated to use api.js wrapper)
   const handleDiagnose = async () => {
     if (!selectedImage) {
       setError('Please select or capture a crop leaf photo first.');
@@ -104,35 +105,16 @@ export default function CropDoctor() {
     setLoading(true);
     setError(null);
 
-    const formData = new FormData();
-    formData.append('image', selectedImage);
-
     try {
-      // Retrieve stored JWT token from localStorage
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        throw new Error('You must be logged in to use the AI Crop Doctor.');
-      }
-
-      const res = await fetch('/api/diagnose', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}` // Send Bearer Token
-        },
-        body: formData
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to analyze crop image');
-
-      setDiagnosis(data.diagnosis);
+      const response = await api.diagnoseCrop(selectedImage);
+      setDiagnosis(response.diagnosis || response);
     } catch (err) {
       setError(err.message || 'Error processing crop image.');
     } finally {
       setLoading(false);
     }
   };
+
   return (
     <div className="space-y-8 py-4 max-w-6xl mx-auto">
       {/* Header */}
