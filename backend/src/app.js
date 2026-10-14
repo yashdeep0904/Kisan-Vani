@@ -15,7 +15,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(cors({
   origin: [
     'http://localhost:5173', // Local Vite development
-    'https://your-frontend-domain.vercel.app' // Replace with your Vercel URL later
+    'https://kisan-vani-client.onrender.com' // Replace with your Vercel URL later
   ],
   credentials: true
 }));
