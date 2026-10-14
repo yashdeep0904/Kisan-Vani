@@ -119,7 +119,7 @@ Provide at least 3 distinct varieties. Return ONLY raw JSON. Do not include mark
 };
 
 // ==========================================
-// 2. Weather Controller
+// 2. Weather Controller (Resilient Fallback)
 // ==========================================
 export const getWeather = async (req, res) => {
   try {
@@ -127,7 +127,7 @@ export const getWeather = async (req, res) => {
     
     // Attempt to fetch live data from your weatherService
     const data = await fetchWeatherData(lat, lon);
-    res.json({ data });
+    return res.json({ data });
 
   } catch (error) {
     console.warn(`[Weather API Warning]: ${error.message}. Serving resilient offline telemetry.`);
@@ -160,8 +160,8 @@ export const getWeather = async (req, res) => {
       }
     ];
 
-    // Serve the fallback data with a 200 OK status
-    res.json({ data: fallbackForecast });
+    // Serve the fallback data safely
+    return res.json({ data: fallbackForecast });
   }
 };
 
