@@ -4,10 +4,13 @@ import { useLang } from '../../context/LangContext';
 import { Sprout, Globe, User, LogOut, LogIn, Stethoscope, TrendingUp, CloudSun, FileText } from 'lucide-react';
 
 export default function Navbar() {
-  // FIXED: Destructured openAuthModal directly from context
-  const { isAuthenticated, user, logoutUser, openAuthModal } = useAuth();
+  // 1. FIXED: Destructured exact variables exported from AuthContext
+  const { user, logout, openAuthModal } = useAuth();
   const { lang, toggleLanguage, t } = useLang();
   const location = useLocation();
+
+  // 2. FIXED: Derive authentication status based on whether the user object exists
+  const isAuthenticated = !!user; 
 
   const isActive = (path) => location.pathname === path;
 
@@ -59,6 +62,7 @@ export default function Navbar() {
         <div className="flex items-center gap-3">
           {/* Bilingual Toggle Button */}
           <button
+            type="button"
             onClick={toggleLanguage}
             className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-bold text-slate-200 transition-all hover:bg-slate-700 cursor-pointer"
           >
@@ -77,7 +81,8 @@ export default function Navbar() {
                 <span className="hidden sm:inline">{user?.name}</span>
               </Link>
               <button
-                onClick={logoutUser}
+                type="button"
+                onClick={logout} // 3. FIXED: Changed from logoutUser to logout
                 className="rounded-xl border border-rose-900/50 bg-rose-950/40 p-2 text-rose-400 hover:bg-rose-900/60 transition-colors cursor-pointer"
                 title={t('nav.logout')}
               >
@@ -86,6 +91,7 @@ export default function Navbar() {
             </div>
           ) : (
             <button
+              type="button"
               onClick={openAuthModal}
               className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-emerald-500 transition-colors cursor-pointer"
             >
