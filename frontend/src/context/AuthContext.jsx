@@ -8,18 +8,27 @@ export function AuthProvider({ children }) {
     const saved = localStorage.getItem('kisan_user');
     return saved ? JSON.parse(saved) : null;
   });
+  
   const [loading, setLoading] = useState(false);
+  
+  // 1. Add Modal Global State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const openAuthModal = () => setIsModalOpen(true);
+  const closeAuthModal = () => setIsModalOpen(false);
 
   const login = async (credentials) => {
     setLoading(true);
     try {
       const data = await api.login(credentials);
       const userData = data.user || data;
+      const token = data.token || data.accessToken || userData.token;
+
+      if (token) {
+        localStorage.setItem('kisan_token', token);
+      }
       
-      setUser(userData);
       localStorage.setItem('kisan_user', JSON.stringify(userData));
-      if (data.token) localStorage.setItem('kisan_token', data.token);
-      
+      setUser(userData);
       return data;
     } finally {
       setLoading(false);
@@ -31,11 +40,14 @@ export function AuthProvider({ children }) {
     try {
       const data = await api.register(userData);
       const userObj = data.user || data;
+      const token = data.token || data.accessToken || userObj.token;
+
+      if (token) {
+        localStorage.setItem('kisan_token', token);
+      }
       
-      setUser(userObj);
       localStorage.setItem('kisan_user', JSON.stringify(userObj));
-      if (data.token) localStorage.setItem('kisan_token', data.token);
-      
+      setUser(userObj);
       return data;
     } finally {
       setLoading(false);
@@ -55,7 +67,10 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ 
+      user, login, register, logout, loading,
+      isModalOpen, openAuthModal, closeAuthModal // 2. Export the modal controls
+    }}>
       {children}
     </AuthContext.Provider>
   );
