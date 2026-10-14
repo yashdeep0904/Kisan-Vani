@@ -1,0 +1,22 @@
+{
+    "short_name": "KisanVaani",
+    "name": "KisanVaani - Voice of the Farmer",
+    "description": "Bilingual AI agronomy assistant for crop diagnostics and live Mandi rates.",
+    "icons": [
+      {
+        "src": "/icon-192x192.png",
+        "type": "image/png",
+        "sizes": "192x192"
+      },
+      {
+        "src": "/icon-512x512.png",
+        "type": "image/png",
+        "sizes": "512x512"
+      }
+    ],
+    "start_url": "/",
+    "background_color": "#0f172a",
+    "display": "standalone",
+    "theme_color": "#10b981",
+    "orientation": "portrait"
+  }
