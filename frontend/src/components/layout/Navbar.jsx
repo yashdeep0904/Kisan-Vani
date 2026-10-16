@@ -1,25 +1,25 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLang } from '../../context/LangContext';
-import { Sprout, Globe, User, LogOut, LogIn, Stethoscope, TrendingUp, CloudSun, FileText } from 'lucide-react';
+import { Sprout, Globe, User, LogOut, LogIn, Stethoscope, TrendingUp, CloudSun, FileText, BrainCircuit } from 'lucide-react';
 
 export default function Navbar() {
-  // 1. FIXED: Destructured exact variables exported from AuthContext
   const { user, logout, openAuthModal } = useAuth();
   const { lang, toggleLanguage, t } = useLang();
   const location = useLocation();
 
-  // 2. FIXED: Derive authentication status based on whether the user object exists
   const isAuthenticated = !!user; 
 
   const isActive = (path) => location.pathname === path;
 
+  // 2. Add the AI Copilot route to the navigation items
   const navItems = [
     { name: t('nav.home'), path: '/', icon: Sprout },
     { name: t('nav.diagnose'), path: '/diagnose', icon: Stethoscope },
     { name: t('nav.mandi'), path: '/mandi', icon: TrendingUp },
     { name: t('nav.weather'), path: '/weather', icon: CloudSun },
-    { name: t('nav.schemes'), path: '/schemes', icon: FileText }
+    { name: t('nav.schemes'), path: '/schemes', icon: FileText },
+    { name: 'AI Copilot', path: '/interview', icon: BrainCircuit }
   ];
 
   return (
@@ -28,7 +28,7 @@ export default function Navbar() {
         
         {/* Brand Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 shadow-lg shadow-emerald-950/50">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-emerald-500 to-teal-700 shadow-lg shadow-emerald-950/50">
             <Sprout className="h-6 w-6 text-slate-950" />
           </div>
           <div>
@@ -82,7 +82,7 @@ export default function Navbar() {
               </Link>
               <button
                 type="button"
-                onClick={logout} // 3. FIXED: Changed from logoutUser to logout
+                onClick={logout}
                 className="rounded-xl border border-rose-900/50 bg-rose-950/40 p-2 text-rose-400 hover:bg-rose-900/60 transition-colors cursor-pointer"
                 title={t('nav.logout')}
               >

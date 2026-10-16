@@ -99,9 +99,9 @@ export default function RegisterForm({ onSuccess, switchToLogin }) {
             onChange={handleChange}
             className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-10 pr-8 text-sm text-white focus:border-emerald-500 outline-none transition-colors appearance-none"
           >
-            <option value="Developer">Full Stack Developer</option>
-            <option value="Student">CS / Engineering Student</option>
-            <option value="Recruiter">Technical Recruiter</option>
+            <option value="Farmer">Farmer</option>
+            <option value="Merchant">Merchant</option>
+           
           </select>
         </div>
       </div>

@@ -5,6 +5,7 @@ import MandiPrices from '../pages/MandiPrices';
 import WeatherForecast from '../pages/WeatherForecast';
 import Schemes from '../pages/Schemes';
 import Profile from '../pages/Profile';
+import InterviewRoom from '../pages/InterviewRoom';
 
 export default function AppRoutes() {
   return (
@@ -15,6 +16,7 @@ export default function AppRoutes() {
       <Route path="/weather" element={<WeatherForecast />} />
       <Route path="/schemes" element={<Schemes />} />
       <Route path="/profile" element={<Profile />} />
+      <Route path="/interview" element={<InterviewRoom />} />
     </Routes>
   );
 }

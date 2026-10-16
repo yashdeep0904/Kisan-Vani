@@ -1,6 +1,6 @@
 import { useAuth } from '../context/AuthContext';
-import { User, Mail, LogOut, BrainCircuit, Lock, Terminal } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { User, Mail, LogOut, BrainCircuit, Lock, Terminal, Mic } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function Profile() {
   const { user, logout, openAuthModal } = useAuth();
@@ -11,7 +11,6 @@ export default function Profile() {
     navigate('/');
   };
 
-  // 1. Guest Fallback State
   if (!user) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center p-6">
@@ -34,7 +33,6 @@ export default function Profile() {
     );
   }
 
-  // 2. Authenticated Developer Profile State
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 space-y-6">
       
@@ -86,15 +84,25 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Workspace Metrics Card */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-center items-center text-center space-y-3">
-          <div className="p-4 bg-emerald-500/10 rounded-full border border-emerald-500/20 mb-2">
+        {/* Workspace Metrics Card with New Launch Button */}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-center items-center text-center space-y-4">
+          <div className="p-4 bg-emerald-500/10 rounded-full border border-emerald-500/20 mb-1">
             <BrainCircuit className="h-10 w-10 text-emerald-400" />
           </div>
-          <h3 className="text-lg font-bold text-white">AI Copilot Ready</h3>
-          <p className="text-sm text-slate-400 max-w-xs">
-            Your GenAI workspace is fully authenticated. You are ready to start technical interview simulations and architecture reviews.
-          </p>
+          <div>
+            <h3 className="text-lg font-bold text-white">AI Copilot Ready</h3>
+            <p className="text-sm text-slate-400 max-w-xs mt-1">
+              Your GenAI workspace is fully authenticated. You are ready to start technical interview simulations and architecture reviews.
+            </p>
+          </div>
+          
+          {/* 3. Button directing to the Interview Room */}
+          <Link
+            to="/interview"
+            className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2 mt-2 shadow-lg shadow-emerald-900/20"
+          >
+            <Mic className="h-4 w-4" /> Launch Voice Session
+          </Link>
         </div>
       </div>
     </div>

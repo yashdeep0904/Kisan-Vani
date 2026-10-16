@@ -1,17 +1,15 @@
+// Inside src/controllers/authController.js
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User.js';
 
-// Helper function to generate JWT Token
 const generateToken = (userId) => {
   return jwt.sign(
     { id: userId }, 
     process.env.JWT_SECRET || 'kisanvaani_secret_key', 
-    { expiresIn: '7d' } // Token valid for 7 days
+    { expiresIn: '7d' }
   );
 };
-
-// 1. REGISTER USER
 
 export const register = async (req, res) => {
   try {
@@ -33,7 +31,7 @@ export const register = async (req, res) => {
       name,
       email: email.toLowerCase(),
       password: hashedPassword,
-      role: role || 'Developer' // Default to Developer
+      role: role || 'Developer' 
     });
 
     const token = generateToken(user._id);
@@ -49,17 +47,25 @@ export const register = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Registration Error:', error.message);
+    console.error('Registration Error:', error);
     
-    // Explicitly expose Mongoose validation errors to the frontend
+    // 1. Catch MongoDB Duplicate Key Error (e.g., email already exists but bypassed findOne)
+    if (error.code === 11000) {
+      return res.status(400).json({ error: 'An account with this email already exists.' });
+    }
+
+    // 2. Catch Mongoose Schema Validation Errors (e.g., Role Enum mismatch)
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map(val => val.message);
       return res.status(400).json({ error: messages.join(', ') });
     }
     
-    res.status(500).json({ error: 'Server error during user registration.' });
+    // 3. Expose the exact error message to the frontend for debugging
+    res.status(500).json({ error: `Server crash: ${error.message}` });
   }
 };
+
+
 
 // 2. LOGIN USER
 export const login = async (req, res) => {
