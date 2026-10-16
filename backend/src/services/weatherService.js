@@ -1,44 +1,68 @@
+import fetch from 'node-fetch';
+
 export const fetchWeatherData = async (lat, lon) => {
-  // Free, no-API-key endpoint offering accurate 10-day agricultural forecasts
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max&timezone=auto&forecast_days=10`;
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error('Weather API unreachable');
-    
-    const data = await response.json();
-    const daily = data.daily;
-
-    const interpretWeatherCode = (code) => {
-      const weatherMap = {
-        0: 'Clear sky',
-        1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
-        45: 'Fog', 48: 'Depositing rime fog',
-        51: 'Light Drizzle', 53: 'Moderate Drizzle', 55: 'Dense Drizzle',
-        61: 'Slight Rain', 63: 'Moderate Rain', 65: 'Heavy Rain',
-        71: 'Slight Snowfall', 73: 'Moderate Snowfall', 75: 'Heavy Snowfall',
-        80: 'Slight Showers', 81: 'Moderate Showers', 82: 'Violent Showers',
-        95: 'Thunderstorm', 96: 'Thunderstorm & Hail', 99: 'Heavy Thunderstorm'
-      };
-      return weatherMap[code] || 'Unknown Condition';
-    };
-
-    return daily.time.map((date, index) => {
-      const dateObj = new Date(date);
-      return {
-        date: date,
-        dayName: index === 0 ? 'Today' : dateObj.toLocaleDateString('en-US', { weekday: 'long' }),
-        monthDay: dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        maxTemp: Math.round(daily.temperature_2m_max[index]),
-        minTemp: Math.round(daily.temperature_2m_min[index]),
-        precipitation: daily.precipitation_sum[index] || 0,
-        wind: Math.round(daily.windspeed_10m_max[index]),
-        condition: interpretWeatherCode(daily.weathercode[index]),
-        code: daily.weathercode[index]
-      };
-    });
-  } catch (error) {
-    console.error('Weather Service Error:', error);
-    throw new Error('Failed to fetch 10-day weather forecast');
+  const apiKey = process.env.WEATHER_API_KEY || process.env.OPENWEATHER_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error('Server configuration missing: WEATHER_API_KEY');
   }
+
+  // OpenWeatherMap 5-Day/3-Hour Forecast endpoint (Free Tier)
+  const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`;
+  
+  const response = await fetch(url);
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to fetch telemetry from OpenWeatherMap');
+  }
+
+  const dailyMap = {};
+  
+  (data.list || []).forEach((item) => {
+    const date = item.dt_txt.split(' ')[0]; 
+    if (!dailyMap[date]) {
+      dailyMap[date] = {
+        temps: [],
+        conditions: [],
+        windSpeeds: [],
+        rain: 0,
+      };
+    }
+    dailyMap[date].temps.push(item.main.temp);
+    dailyMap[date].conditions.push(item.weather[0].description);
+    dailyMap[date].windSpeeds.push(item.wind.speed * 3.6); 
+    
+    if (item.rain && item.rain['3h']) {
+      dailyMap[date].rain += item.rain['3h'];
+    }
+  });
+
+  const forecastArray = Object.keys(dailyMap).map((dateStr, index) => {
+    const dayData = dailyMap[dateStr];
+    
+    const maxTemp = Math.round(Math.max(...dayData.temps));
+    const minTemp = Math.round(Math.min(...dayData.temps));
+    const avgWind = Math.round(dayData.windSpeeds.reduce((a, b) => a + b, 0) / dayData.windSpeeds.length);
+    
+    const condition = dayData.conditions[0] || 'clear sky';
+    const code = condition.includes('rain') ? 61 : condition.includes('cloud') ? 3 : 0;
+
+    const dateObj = new Date(dateStr);
+    const dayName = index === 0 ? 'Today' : dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+    const monthDay = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+    return {
+      code,
+      maxTemp,
+      minTemp,
+      precipitation: Number(dayData.rain.toFixed(1)),
+      wind: avgWind,
+      condition,
+      dayName,
+      monthDay
+    };
+  });
+
+  return forecastArray;
 };

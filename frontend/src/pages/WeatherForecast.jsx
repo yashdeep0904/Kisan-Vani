@@ -13,11 +13,10 @@ export default function WeatherForecast() {
     const fetchWeather = async (lat, lon, districtName) => {
       try {
         const response = await api.getWeather(lat, lon);
-        // Fallback added to guarantee arrays and prevent map() undefined errors
         setForecast(response?.data || response || []);
         if (districtName) setLocationName(districtName);
       } catch (err) {
-        setError(err.message || 'Failed to load forecast');
+        setError(err.message || 'Failed to load live meteorological data');
       } finally {
         setLoading(false);
       }
@@ -28,7 +27,7 @@ export default function WeatherForecast() {
         async (position) => {
           const { latitude, longitude } = position.coords;
           try {
-            const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+            const res = await fetch(`[https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=$](https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=$){latitude}&longitude=${longitude}&localityLanguage=en`);
             const geoData = await res.json();
             const district = geoData.locality || geoData.city || 'Your Location';
             fetchWeather(latitude, longitude, district);
@@ -36,9 +35,7 @@ export default function WeatherForecast() {
             fetchWeather(latitude, longitude, 'Your Location');
           }
         },
-        () => {
-          fetchWeather(28.6139, 77.2090, 'New Delhi (Default)'); 
-        }
+        () => fetchWeather(28.6139, 77.2090, 'New Delhi (Default)')
       );
     } else {
       fetchWeather(28.6139, 77.2090, 'New Delhi (Default)');
@@ -74,10 +71,10 @@ export default function WeatherForecast() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center gap-3">
             <CloudSun className="h-8 w-8 text-blue-400" />
-            10-Day Agricultural Forecast
+            Live Agricultural Forecast
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Real-time meteorological data for optimal crop planning.
+            Real-time meteorological telemetry for optimal crop planning.
           </p>
         </div>
         
@@ -96,12 +93,10 @@ export default function WeatherForecast() {
       {loading ? (
         <div className="flex flex-col items-center justify-center p-12 gap-3 text-slate-400">
           <Loader2 className="h-8 w-8 text-blue-400 animate-spin" />
-          <p className="text-sm">Analyzing satellite telemetry for 10-day projections...</p>
+          <p className="text-sm">Connecting to global weather satellites...</p>
         </div>
       ) : forecast.length > 0 ? (
         <div className="space-y-6">
-          
-          {/* Today's Highlight Card */}
           <div className="bg-gradient-to-br from-blue-950 to-slate-900 border border-blue-900/50 rounded-2xl p-6 sm:p-8 relative overflow-hidden shadow-2xl">
             <div className="absolute top-0 right-0 p-8 opacity-10">
               {getWeatherIcon(today.code, "h-48 w-48 text-blue-300")}
@@ -146,11 +141,10 @@ export default function WeatherForecast() {
             </div>
           </div>
 
-          {/* 9-Day Outlook Grid */}
           <div>
             <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
               <CalendarDays className="h-5 w-5 text-slate-400" />
-              9-Day Extended Outlook
+              {upcomingDays.length}-Day Extended Outlook
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
               {upcomingDays.map((day, idx) => (
