@@ -21,8 +21,9 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['farmer', 'trader', 'admin'],
-      default: 'farmer'
+      // Updated to support GenAI Workspace roles
+      enum: ['Developer', 'Student', 'Recruiter', 'farmer', 'trader', 'admin'],
+      default: 'Developer'
     }
   },
   { timestamps: true }
