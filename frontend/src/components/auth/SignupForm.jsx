@@ -71,6 +71,7 @@ export default function RegisterForm({ onSuccess, switchToLogin }) {
         </div>
       </div>
 
+      
       <div className="space-y-1.5">
         <label className="text-xs font-semibold text-slate-300">PASSWORD</label>
         <div className="relative">
@@ -79,6 +80,7 @@ export default function RegisterForm({ onSuccess, switchToLogin }) {
             type="password"
             name="password"
             required
+            minLength="6" // Enforces the Mongoose requirement natively
             value={formData.password}
             onChange={handleChange}
             placeholder="••••••••"

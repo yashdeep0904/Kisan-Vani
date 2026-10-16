@@ -12,6 +12,7 @@ const generateToken = (userId) => {
 };
 
 // 1. REGISTER USER
+
 export const register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
@@ -20,25 +21,21 @@ export const register = async (req, res) => {
       return res.status(400).json({ error: 'Please provide all required fields (name, email, password).' });
     }
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return res.status(400).json({ error: 'User already exists with this email address.' });
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create new user record
     const user = await User.create({
       name,
       email: email.toLowerCase(),
       password: hashedPassword,
-      role: role || 'farmer'
+      role: role || 'Developer' // Default to Developer
     });
 
-    // Generate token
     const token = generateToken(user._id);
 
     res.status(201).json({
@@ -52,7 +49,14 @@ export const register = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Registration Error:', error);
+    console.error('Registration Error:', error.message);
+    
+    // Explicitly expose Mongoose validation errors to the frontend
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(val => val.message);
+      return res.status(400).json({ error: messages.join(', ') });
+    }
+    
     res.status(500).json({ error: 'Server error during user registration.' });
   }
 };
