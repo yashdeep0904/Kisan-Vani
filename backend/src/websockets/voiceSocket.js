@@ -39,16 +39,12 @@ export const setupVoiceSocket = (server) => {
         const base64Audio = audioBuffer.toString('base64');
 
         // 4. Update the prompt to instruct the AI to actively listen to the file
-        const prompt = `You are a Technical Interview Copilot. 
-Listen to the attached audio response from the candidate. 
-First, briefly acknowledge exactly what they just said.
-Then, ask a sharp follow-up interview question based on their answer.
-If they didn't say anything technical, guide them back to software engineering.
-Keep your response concise (maximum 2 to 3 sentences) so it can be spoken fluently over audio.`;
+        const prompt = `You are Kisan Vaani, an expert agricultural assistant. 
+        Listen to the farmer's voice input, answer their questions about weather, crops, or market prices clearly and helpfully, and keep your response concise (2-3 sentences).`;
 
         // 5. Send BOTH the text prompt and the audio file to Gemini
         const response = await ai.models.generateContent({
-          model: 'gemini-3.8-flash',
+          model: 'gemini-3.5-flash',
           contents: [
             prompt,
             {
